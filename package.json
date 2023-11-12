@@ -2,7 +2,7 @@
   "name": "safe-storage-hash",
   "version": "1.0.0",
   "main": "src/index.ts",
-  "repository": "",
+  "repository": "git@github.com:cristovaoth/safe-storage-hash.git",
   "author": "cristovao.honorato@gnosis.io",
   "license": "MIT",
   "scripts": {
