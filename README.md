@@ -29,3 +29,9 @@ This package detects a shadow safe through reverse engineering, determining the 
 ## Enhancing RPC Performance
 
 This package uses the default RPC URLs for each network. To speed up calculations on networks supported by Alchemy or Infura, insert the corresponding key in the .env file.
+
+```env
+# put either one in your .env file for faster answers
+INFURA_API_KEY=
+ALCHEMY_API_KEY=
+```
