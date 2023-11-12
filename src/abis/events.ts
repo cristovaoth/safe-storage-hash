@@ -5,7 +5,7 @@ export const SAFE_PROXY_CREATION = keccak256(
   toBytes('ProxyCreation(address,address)')
 )
 
-export const APPROVE_HASH = keccak256(toBytes('ApproveHash(address,address)'))
+export const APPROVE_HASH = keccak256(toBytes('ApproveHash(bytes32,address)'))
 export const SIGN_MSG = keccak256(toBytes('SignMsg(bytes32)'))
 
 export function decodeSafeProxyCreation(log: Log) {
