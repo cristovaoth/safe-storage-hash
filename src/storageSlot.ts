@@ -63,15 +63,13 @@ export const slotSignedMessage = (msgHash: Hex) => {
   return keccak256(concat([msgHash, SLOT_7]))
 }
 
-export const slotApprovedHashes = (owner: Hex, msgHash: Hex) => {
+export const slotApprovedHash = (owner: Hex, msgHash: Hex) => {
   // approvedHashes -> mapping(address => mapping(bytes32 => uint256)) internal approvedHashes;
   const SLOT_8 =
     '0x0000000000000000000000000000000000000000000000000000000000000007'
-  const left = msgHash
-  const center = encodeAbiParameters([{ type: 'address' }], [owner])
-  const right = SLOT_8
+  owner = encodeAbiParameters([{ type: 'address' }], [owner])
 
-  return keccak256(concat([left, keccak256(concat([center, right]))]))
+  return keccak256(concat([msgHash, keccak256(concat([owner, SLOT_8]))]))
 }
 
 export const slotGuard = () => {

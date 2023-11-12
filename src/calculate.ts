@@ -3,7 +3,7 @@ import { Trie } from '@ethereumjs/trie'
 
 import { decodeApproveHash, decodeSignMsg } from './abis/events'
 import {
-  slotApprovedHashes,
+  slotApprovedHash,
   slotFallback,
   slotGuard,
   slotModule,
@@ -53,10 +53,7 @@ export default async function calculateStorageHash({
 
   const approveHashEntries = approveHashEvents
     .map(decodeApproveHash)
-    .map(({ owner, msgHash }) => [
-      slotApprovedHashes(owner, msgHash),
-      BigInt(1),
-    ])
+    .map(({ owner, msgHash }) => [slotApprovedHash(owner, msgHash), BigInt(1)])
 
   const entries = [
     [slotSingleton(), BigInt(singleton)],
