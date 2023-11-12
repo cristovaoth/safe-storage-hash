@@ -1,6 +1,6 @@
 # Calculate Safe Storage Hash
 
-A project that detects whether a deployed Gnosis Safe has experienced shadow storage writes
+A project that detects whether a deployed Safe has experienced shadow storage writes.
 
 ## Installation
 

@@ -1,22 +1,33 @@
-import dotenv from 'dotenv'
+import assert from 'assert'
 
 import {
+  Hex,
   PublicClient,
   decodeAbiParameters,
   decodeFunctionResult,
   encodeFunctionData,
+  getAddress,
   getContract,
+  toHex,
 } from 'viem'
 
-import multicallAbi, { address as multicallAddress } from './abis/multicall'
-import safeAbi from './abis/safe'
-import { SLOT_0, SLOT_FALLBACK, SLOT_GUARD } from './storageSlot'
+import {
+  getSafeL2SingletonDeployment,
+  getSafeSingletonDeployment,
+} from '@safe-global/safe-deployments'
 
-dotenv.config()
+import multicallAbi, { address as multicallAddress } from '../abis/multicall'
+import safeAbi from '../abis/safe'
+import {
+  slotFallback,
+  slotGuard,
+  slotSeparator,
+  slotSingleton,
+} from '../storageSlot'
 
-const AddressOne = '0x0000000000000000000000000000000000000001'
+const SENTINEL = '0x0000000000000000000000000000000000000001'
 
-export default async function (client: PublicClient, safe: `0x${string}`) {
+export async function querySafeStorage(client: PublicClient, safe: Hex) {
   const multicall = getContract({
     abi: multicallAbi,
     address: multicallAddress,
@@ -26,7 +37,6 @@ export default async function (client: PublicClient, safe: `0x${string}`) {
   const { result } = await multicall.simulate.aggregate3([
     [
       // https://github.com/safe-global/safe-contracts/blob/main/test/libraries/Safe.spec.ts
-
       // 0
       {
         target: safe,
@@ -34,7 +44,7 @@ export default async function (client: PublicClient, safe: `0x${string}`) {
         callData: encodeFunctionData({
           abi: safeAbi,
           functionName: 'getStorageAt',
-          args: [BigInt(SLOT_0), BigInt(1)],
+          args: [BigInt(slotSingleton()), BigInt(1)],
         }),
       },
       // slot1 modules
@@ -44,7 +54,7 @@ export default async function (client: PublicClient, safe: `0x${string}`) {
         callData: encodeFunctionData({
           abi: safeAbi,
           functionName: 'getModulesPaginated',
-          args: [AddressOne, BigInt(1000)],
+          args: [SENTINEL, BigInt(10000)],
         }),
       },
       // slot2 owners
@@ -74,13 +84,14 @@ export default async function (client: PublicClient, safe: `0x${string}`) {
           functionName: 'nonce',
         }),
       },
+      // slot6 separator
       {
         target: safe,
         allowFailure: true,
         callData: encodeFunctionData({
           abi: safeAbi,
           functionName: 'getStorageAt',
-          args: [BigInt(SLOT_GUARD), BigInt(1)],
+          args: [BigInt(slotSeparator()), BigInt(1)],
         }),
       },
       {
@@ -89,7 +100,16 @@ export default async function (client: PublicClient, safe: `0x${string}`) {
         callData: encodeFunctionData({
           abi: safeAbi,
           functionName: 'getStorageAt',
-          args: [BigInt(SLOT_FALLBACK), BigInt(1)],
+          args: [BigInt(slotGuard()), BigInt(1)],
+        }),
+      },
+      {
+        target: safe,
+        allowFailure: true,
+        callData: encodeFunctionData({
+          abi: safeAbi,
+          functionName: 'getStorageAt',
+          args: [BigInt(slotFallback()), BigInt(1)],
         }),
       },
       {
@@ -109,6 +129,7 @@ export default async function (client: PublicClient, safe: `0x${string}`) {
     { returnData: ownersResult },
     { returnData: thresholdResult },
     { returnData: nonceResult },
+    { returnData: separatorResult },
     { returnData: guardResult },
     { returnData: fallbackResult },
     { returnData: blockNumberResult },
@@ -147,6 +168,15 @@ export default async function (client: PublicClient, safe: `0x${string}`) {
     data: nonceResult,
   })
 
+  const [separator] = decodeAbiParameters(
+    [{ type: 'bytes32' }],
+    decodeFunctionResult({
+      abi: safeAbi,
+      functionName: 'getStorageAt',
+      data: separatorResult,
+    })
+  )
+
   const [guard] = decodeAbiParameters(
     [{ type: 'address' }],
     decodeFunctionResult({
@@ -177,8 +207,59 @@ export default async function (client: PublicClient, safe: `0x${string}`) {
     owners: [...owners],
     threshold,
     nonce,
+    separator,
     guard,
     fallback,
     blockNumber,
   }
+}
+
+export async function querySafeVersion(client: PublicClient, safe: Hex) {
+  const chainId = client.chain?.id
+  assert(typeof chainId == 'number')
+
+  const storageValue = await client.getStorageAt({
+    address: safe,
+    slot: toHex(0),
+  })
+  if (!storageValue) {
+    return null
+  }
+
+  const network = String(chainId)
+  const [singleton] = decodeAbiParameters([{ type: 'address' }], storageValue)
+
+  return (
+    versionMatch(singleton, network, '1.3.0') ||
+    versionMatch(singleton, network, '1.4.1') ||
+    versionMatch(singleton, network, '1.0.0') ||
+    versionMatch(singleton, network, '1.1.1') ||
+    versionMatch(singleton, network, '1.2.0')
+  )
+}
+
+function versionMatch(singleton: Hex, network: string, version: string) {
+  let deployment = getSafeSingletonDeployment({
+    network,
+    version,
+  })
+  if (
+    deployment &&
+    getAddress(deployment.networkAddresses[network]) == getAddress(singleton)
+  ) {
+    return deployment.version
+  }
+
+  deployment = getSafeL2SingletonDeployment({
+    network,
+    version,
+  })
+  if (
+    deployment &&
+    getAddress(deployment.networkAddresses[network]) == getAddress(singleton)
+  ) {
+    return deployment.version
+  }
+
+  return null
 }

@@ -5,27 +5,8 @@ export const SAFE_PROXY_CREATION = keccak256(
   toBytes('ProxyCreation(address,address)')
 )
 
-export const SAFE_SETUP = keccak256(
-  toBytes('SafeSetup(address,address[],uint256,address,address)')
-)
 export const APPROVE_HASH = keccak256(toBytes('ApproveHash(address,address)'))
 export const SIGN_MSG = keccak256(toBytes('SignMsg(bytes32)'))
-
-// export function decodeSafeSetup(log: Log) {
-//   assert(log.topics[0] == SAFE_SETUP)
-
-//   const [owners, threshold, , fallbackHandler] = decodeAbiParameters(
-//     [
-//       { type: 'address[]' },
-//       { type: 'uint256' },
-//       { type: 'address' },
-//       { type: 'address' },
-//     ],
-//     log.data as `0x${string}`
-//   )
-
-//   return { owners: [...owners], threshold, fallbackHandler }
-// }
 
 export function decodeSafeProxyCreation(log: Log) {
   assert(log.topics[0] == SAFE_PROXY_CREATION)
@@ -41,12 +22,12 @@ export function decodeSafeProxyCreation(log: Log) {
       [{ type: 'address' }, { type: 'address' }],
       log.data
     )
-    return { proxy, singleton }
+    return { proxy, singleton, blockNumber: Number(log.blockNumber) }
   } else {
     assert(log.topics.length == 2)
     const [proxy] = decodeAbiParameters([{ type: 'address' }], log.topics[1])
     const [singleton] = decodeAbiParameters([{ type: 'address' }], log.data)
-    return { proxy, singleton }
+    return { proxy, singleton, blockNumber: Number(log.blockNumber) }
   }
 }
 

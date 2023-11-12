@@ -1,27 +1,41 @@
 import assert from 'assert'
 
+type fetchCallback<T> = (startBlock: number, endBlock: number) => Promise<T[]>
+type progressCallback = ({
+  from,
+  to,
+  currFrom,
+  currTo,
+}: {
+  from: number
+  to: number
+  currFrom: number
+  currTo: number
+}) => void
+
 export default function createFetchAggregator<T>(
   from: number,
   to: number,
-  fetch: (startBlock: number, endBlock: number) => Promise<T[]>
+  fetch: fetchCallback<T>,
+  progress?: progressCallback
 ): () => Promise<T[]> {
   let result: T[] = []
-  let [currLeft, currRight] = next(from, to)
+  let [currFrom, currTo] = next(from, to)
 
   return async () => {
     while (true) {
       // have we already fetched all?
-      if (currLeft > currRight) {
+      if (currFrom > currTo) {
         return [...result]
       }
 
       try {
-        console.log(`${currLeft} ${currRight}`)
-        result = result.concat(await fetch(currLeft, currRight))
-        ;[currLeft, currRight] = next(currRight + 1, to)
+        result = result.concat(await fetch(currFrom, currTo))
+        if (progress) progress({ from, to, currFrom, currTo })
+        ;[currFrom, currTo] = next(currTo + 1, to)
       } catch (e) {
-        if (currLeft < currRight) {
-          ;[currLeft, currRight] = narrow(currLeft, currRight)
+        if (currFrom < currTo) {
+          ;[currFrom, currTo] = narrow(currFrom, currTo)
         } else {
           throw e
         }
@@ -38,10 +52,5 @@ function narrow(start: number, end: number) {
 }
 
 function next(left: number, right: number, maxBlockRange: number = 100000) {
-  return [left, Math.min(left + (maxBlockRange - 1), right)]
+  return [left, right]
 }
-
-// function isPaginationError(e: any) {
-//   // https://docs.infura.io/networks/ethereum/json-rpc-methods/eth_getlogs#constraints
-//   return e?.error?.code == -32005;
-// }
