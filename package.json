@@ -1,0 +1,29 @@
+{
+  "name": "safe-storage-root",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "repository": "",
+  "author": "cristovao.honorato@gnosis.io",
+  "license": "MIT",
+  "scripts": {
+    "compute": "ts-node ./src/computeStateRoot.ts"
+  },
+  "dependencies": {
+    "@ethereumjs/rlp": "^5.0.1",
+    "@ethereumjs/trie": "^6.0.1",
+    "@safe-global/safe-deployments": "1.28.0",
+    "@types/async": "^3.2.20",
+    "@types/node-fetch": "^2.6.4",
+    "@types/node": "^20.0.0",
+    "cmd-ts": "^0.13.0",
+    "dotenv": "^16.3.1",
+    "eslint": "^8.47.0",
+    "node-fetch": "2.6.7",
+    "prettier": "^3.0.3",
+    "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.7",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.1.6",
+    "viem": "^1.18.9"
+  }
+}
