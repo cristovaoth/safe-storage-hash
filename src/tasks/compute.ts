@@ -58,6 +58,11 @@ async function run(publicClient: PublicClient, safe: Hex) {
   })
   console.log('Expected : ' + calculated)
   console.log('Actual   : ' + storageHash)
+  if (calculated == storageHash) {
+    console.log(`\x1B[32m✔ Hashes match \x1B[0m`)
+  } else {
+    console.log('\x1B[31m✘ \x1B[0m')
+  }
 }
 
 const { safe, chain } = parseInput(process.argv)
