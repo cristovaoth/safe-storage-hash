@@ -24,14 +24,8 @@ yarn compute 0xF4BC398d1A3dE41B753cA9a3E16d599C265B9EB2 100
 
 The issue of shadow safes has come to light recently on Twitter (refer to this [Tweet](https://twitter.com/bkiepuszewski/status/1722287321997779427)).
 
-This package detects a shadow safe through reverse engineering, determining the expected storage state based on public contract functions and event logs. It then compares this derived storage hash with the actual storage hash obtained from **eth_getProof**. If a difference exists, it indicates the existence of shadow storage writes.
+This package detects a shadow safe by calculating the expected storage hash based on public contract functions and event logs. It then compares it with the actual storage hash obtained from **eth_getProof**. If a difference exists, there are shadow storage writes.
 
 ## Enhancing RPC Performance
 
-This package uses the default RPC URLs for each network. To speed up calculations on networks supported by Alchemy or Infura, insert the corresponding key in the .env file.
-
-```env
-# put either one in your .env file for faster answers
-INFURA_API_KEY=
-ALCHEMY_API_KEY=
-```
+This package uses the public default network RPC URLs. Insert keys on .env to speed up the script.
