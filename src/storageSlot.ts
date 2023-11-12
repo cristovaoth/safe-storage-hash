@@ -46,12 +46,7 @@ export const slotOwners = (owner: `0x${string}`) => {
   )
 }
 export const slotSignedMessages = (msgHash: `0x${string}`) => {
-  return keccak256(
-    encodeAbiParameters(
-      [{ type: 'address' }, { type: 'bytes32' }],
-      [msgHash, SLOT_7]
-    )
-  )
+  return keccak256(concat([msgHash, SLOT_7]))
 }
 
 export const slotApprovedHashes = (

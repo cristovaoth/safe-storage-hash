@@ -6,7 +6,8 @@
   "author": "cristovao.honorato@gnosis.io",
   "license": "MIT",
   "scripts": {
-    "compute": "ts-node ./src/computeStateRoot.ts"
+    "compute": "ts-node ./src/tasks/compute.ts",
+    "events": "ts-node ./src/queryEvents.ts"
   },
   "dependencies": {
     "@ethereumjs/rlp": "^5.0.1",

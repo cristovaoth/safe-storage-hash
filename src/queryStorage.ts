@@ -17,13 +17,13 @@ dotenv.config()
 const AddressOne = '0x0000000000000000000000000000000000000001'
 
 export default async function (client: PublicClient, safe: `0x${string}`) {
-  const contract = getContract({
+  const multicall = getContract({
     abi: multicallAbi,
     address: multicallAddress,
     publicClient: client,
   })
 
-  const { result } = await contract.simulate.aggregate3([
+  const { result } = await multicall.simulate.aggregate3([
     [
       // https://github.com/safe-global/safe-contracts/blob/main/test/libraries/Safe.spec.ts
 
