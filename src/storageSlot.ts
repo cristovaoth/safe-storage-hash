@@ -1,8 +1,17 @@
-/*
- * See layout at github.com/safe-global/safe-contracts/blob/v1.4.0/test/libraries/Safe.spec.ts
- */
+import { Trie } from '@ethereumjs/trie'
+import {
+  Hex,
+  concat,
+  encodeAbiParameters,
+  keccak256,
+  toBytes,
+  toHex,
+  toRlp,
+} from 'viem'
 
-import { Hex, concat, encodeAbiParameters, keccak256 } from 'viem'
+/*
+ * See https://github.com/safe-global/safe-contracts/blob/v1.4.0/test/libraries/Safe.spec.ts
+ */
 
 export const slotSingleton = () => {
   const SLOT_0 =
@@ -78,4 +87,31 @@ export const slotGuard = () => {
 
 export const slotFallback = () => {
   return '0x6c9a6c4a39284e37ed1cf53d337577d14212a4870fb976a4366c693b939918d5'
+}
+
+/**
+ * The AccountStorageTrie is a Merkle Patricia Trie where:
+ * key: a 256 int from the slot number
+ * value: the rlp representation of the slot value
+ *
+ * For keys we accept 32 byte hashes, for values we hex/bigint/number
+ */
+export async function createAccountStorageTrie(
+  _entries: [Hex, Hex | bigint | number][]
+) {
+  const entries = _entries.map(([key, value]) => [
+    toBytes(key),
+    toBytes(toRlp(toHex(BigInt(value)))),
+  ])
+
+  const trie = await Trie.create({ useKeyHashing: true })
+  for (const [key, value] of entries) {
+    if (value.every((v) => v == 0)) {
+      // is zero value
+      await trie.del(key)
+    } else {
+      await trie.put(key, value)
+    }
+  }
+  return trie
 }
