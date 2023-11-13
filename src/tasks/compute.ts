@@ -1,16 +1,18 @@
 import { Hex, PublicClient } from 'viem'
 
+import createClient from '@/fetch/createClient'
 import ethGetProof from '@/fetch/eth_getProof'
-import { querySafeEvents } from '@/fetch/queryEvents'
-import { querySafeStorage, querySafeVersion } from '@/fetch/queryContract'
+import querySafeEvents from '@/fetch/querySafeEvents'
+import querySafeStorage from '@/fetch/querySafeStorage'
+import querySafeVersion from '@/fetch/querySafeVersion'
 
 import calculateStorageHash from '@/calculate'
 
 import parseInput from './parseInput'
-import createClient from '@/fetch/createClient'
 
 async function run(publicClient: PublicClient, safe: Hex) {
-  const version = await querySafeVersion(publicClient, safe)
+  const blockNumber = await publicClient.getBlockNumber()
+  const version = await querySafeVersion(publicClient, safe, blockNumber)
   if (!version) {
     console.error(`Address ${safe} is not a Safe`)
     return
@@ -32,15 +34,14 @@ async function run(publicClient: PublicClient, safe: Hex) {
     separator,
     guard,
     fallback,
-    blockNumber,
-  } = await querySafeStorage(publicClient, safe)
+  } = await querySafeStorage(publicClient, safe, blockNumber)
+
   console.log(`fetching events...`)
   const { signMsgEvents, approveHashEvents } = await querySafeEvents(
     publicClient,
     safe,
     BigInt(0),
-    blockNumber,
-    true
+    blockNumber
   )
   console.log(`fetching eth_getProof...`)
   const storageHash = await ethGetProof(publicClient, safe, blockNumber)

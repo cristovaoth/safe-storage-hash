@@ -1,7 +1,7 @@
 import { Hex, Log, toBytes, toHex, toRlp } from 'viem'
 import { Trie } from '@ethereumjs/trie'
 
-import { decodeApproveHash, decodeSignMsg } from './abis/events'
+import { decodeApproveHash, decodeSignMsg } from './events'
 import {
   slotApprovedHash,
   slotFallback,

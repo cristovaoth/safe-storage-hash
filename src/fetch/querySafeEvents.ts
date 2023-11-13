@@ -1,13 +1,12 @@
 import { Hex, PublicClient } from 'viem'
-import { APPROVE_HASH, SIGN_MSG } from '../abis/events'
+import { APPROVE_HASH, SIGN_MSG } from '../events'
 import createFetchAggregator from './createFetchAgregator'
 
-export async function querySafeEvents(
+export default async function querySafeEvents(
   publicClient: PublicClient,
   safe: Hex,
   fromBlock: bigint,
-  toBlock: bigint,
-  progress: boolean = false
+  toBlock: bigint
 ) {
   const fetch = createFetchAggregator(
     Number(fromBlock),
@@ -18,7 +17,7 @@ export async function querySafeEvents(
         toBlock: BigInt(currTo),
         address: safe,
       }),
-    progress ? createReporter() : undefined
+    createReporter()
   )
   const logs = await fetch()
 
@@ -31,17 +30,7 @@ export async function querySafeEvents(
 function createReporter() {
   const set = new Set<number>()
 
-  return ({
-    from,
-    to,
-    currFrom,
-    currTo,
-  }: {
-    from: number
-    to: number
-    currFrom: number
-    currTo: number
-  }) => {
+  return ({ to, currTo }: { to: number; currTo: number }) => {
     const progress = Math.floor((currTo * 100) / to)
     const rounded = Math.floor(progress / 10) * 10
 

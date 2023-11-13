@@ -2,15 +2,20 @@ import path from 'path'
 import fs from 'fs'
 import { Chain, mainnet } from 'viem/chains'
 
-import { querySafeVersion, querySafeStorage } from '@/fetch/queryContract'
 import createClient from '@/fetch/createClient'
-import { querySafeEvents } from '@/fetch/queryEvents'
-import ethGetProof from '@/fetch/eth_getProof'
+import eth_getProof from '@/fetch/eth_getProof'
+import queryEventMap from '@/fetch/queryEventMap'
+import querySafeStorage from '@/fetch/querySafeStorage'
+import querySafeVersion from '@/fetch/querySafeVersion'
+
 import calculateStorageHash from '@/calculate'
+import { Hex, getAddress } from 'viem'
 
 async function run(chain: Chain) {
   const safes = loadSafes(chain.id)
   const publicClient = createClient(chain)
+  const blockNumber = await publicClient.getBlockNumber()
+  const eventMap = await queryEventMap(publicClient, BigInt(0), blockNumber)
 
   let counter = 0
   const success = []
@@ -19,46 +24,48 @@ async function run(chain: Chain) {
   const unsupported = []
   const notASafe = []
 
-  for (const { address: safe } of safes) {
-    console.log(`${counter} ${safe}`)
+  for (const safe of safes) {
+    console.info(`${counter} ${safe}`)
     try {
-      const version = await querySafeVersion(publicClient, safe)
+      const [
+        version,
+        {
+          singleton,
+          modules,
+          owners,
+          threshold,
+          nonce,
+          separator,
+          guard,
+          fallback,
+        },
+        storageHash,
+      ] = await Promise.all([
+        querySafeVersion(publicClient, safe, blockNumber),
+        querySafeStorage(publicClient, safe, blockNumber),
+        eth_getProof(publicClient, safe, blockNumber),
+      ])
+
       if (!version) {
         console.log('Not a Safe')
         notASafe.push(safe)
         continue
       }
-
       console.info(
         `Safe is v${version} in ${publicClient.chain?.name} (chainId ${publicClient.chain?.id})`
       )
-
       if (version != '1.3.0' && version != '1.4.1') {
         console.log('Unsupported')
         unsupported.push(safe)
         continue
       }
 
-      console.log(`fetching storage values...`)
-      const {
-        singleton,
-        modules,
-        owners,
-        threshold,
-        nonce,
-        separator,
-        guard,
-        fallback,
-        blockNumber,
-      } = await querySafeStorage(publicClient, safe)
+      const { signMsgEvents, approveHashEvents } = eventMap.get(safe) || {
+        signMsgEvents: [],
+        approveHashEvents: [],
+      }
 
-      console.log(`fetching events...`)
-      const [{ signMsgEvents, approveHashEvents }, expected] =
-        await Promise.all([
-          querySafeEvents(publicClient, safe, BigInt(0), blockNumber),
-          ethGetProof(publicClient, safe, blockNumber),
-        ])
-      const calculated = await calculateStorageHash({
+      const calculatedStorageHash = await calculateStorageHash({
         singleton,
         modules,
         owners,
@@ -71,15 +78,15 @@ async function run(chain: Chain) {
         fallback,
       })
 
-      if (expected == calculated) {
+      if (storageHash == calculatedStorageHash) {
         console.log(`\x1B[32m✔ \x1B[0m`)
-        success.push({ safe, storageHash: expected })
+        success.push({ safe, storageHash })
       } else {
         console.log('\x1B[31m✘ \x1B[0m')
         failures.push({
           safe,
-          actual: expected,
-          expected: calculated,
+          storageHash,
+          calculatedStorageHash,
         })
       }
     } catch (e) {
@@ -106,7 +113,7 @@ function loadSafes(chainId: number) {
       'utf8'
     )
   )
-  return safes
+  return safes.map(({ address }: { address: Hex }) => getAddress(address))
 }
 
 function storeResults(chainId: number, data: any) {
