@@ -19,7 +19,7 @@ export default function (chain: Chain) {
     console.info('CreateClient: using Infura with API key')
     url = `${chain.rpcUrls.infura.http[0]}/${process.env.INFURA_API_KEY}`
   } else {
-    console.info(`CreateClient: using default RPC node for chainID ${chain.id}`)
+    console.info(`CreateClient: using default RPC node for chainId ${chain.id}`)
   }
 
   return createPublicClient({

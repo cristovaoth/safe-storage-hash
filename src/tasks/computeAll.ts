@@ -48,15 +48,15 @@ async function run(chain: Chain) {
       ])
 
       if (!version) {
-        console.log('Not a Safe')
+        console.info(`Address ${safe} is not a Safe`)
         notASafe.push(safe)
         continue
       }
       console.info(
         `Safe is v${version} in ${publicClient.chain?.name} (chainId ${publicClient.chain?.id})`
       )
-      if (version != '1.3.0' && version != '1.4.1') {
-        console.log('Unsupported')
+      if (!['1.3.0', '1.4.1'].includes(version)) {
+        console.info(`v${version} is not supported`)
         unsupported.push(safe)
         continue
       }

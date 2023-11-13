@@ -6,7 +6,7 @@ export default async function queryEventMap(
   fromBlock: bigint,
   toBlock: bigint
 ) {
-  console.log('Creating EventMap for all Safes')
+  console.log('Creating global EventMap')
   const result = new Map<
     Hex,
     { signMsgEvents: Log[]; approveHashEvents: Log[] }
@@ -33,7 +33,7 @@ export default async function queryEventMap(
     result.get(address)?.signMsgEvents.push(log)
   }
 
-  const fetchAproveHash = createFetchAggregator(
+  const fetchApproveHash = createFetchAggregator(
     Number(fromBlock),
     Number(toBlock),
     (currFrom, currTo) =>
@@ -46,7 +46,7 @@ export default async function queryEventMap(
   )
 
   console.log('Fetching all ApproveHash events...')
-  for (const log of await fetchAproveHash()) {
+  for (const log of await fetchApproveHash()) {
     const address = getAddress(log.address)
     if (!result.has(address)) {
       result.set(address, { signMsgEvents: [], approveHashEvents: [] })

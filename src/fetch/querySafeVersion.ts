@@ -16,11 +16,10 @@ export default async function querySafeVersion(
     slot: toHex(0),
     blockNumber,
   })
-  if (!storageValue) {
+  if (!storageValue || storageValue == '0x') {
     return null
   }
 
-  const network = String(chainId)
   const [singleton] = decodeAbiParameters([{ type: 'address' }], storageValue)
 
   return findSafeSingletonVersion({ chainId, singleton })

@@ -20,11 +20,12 @@ async function run(publicClient: PublicClient, safe: Hex) {
   console.info(
     `Safe is v${version} in ${publicClient.chain?.name} (chainId ${publicClient.chain?.id})`
   )
-  if (version != '1.3.0' && version != '1.4.1') {
-    console.error(`Safe v${version} is not supported`)
+  if (!['1.3.0', '1.4.1'].includes(version)) {
+    console.error(`v${version} is not supported`)
     return
   }
-  console.log(`fetching storage values...`)
+
+  console.info(`fetching storage values...`)
   const {
     singleton,
     modules,
@@ -43,9 +44,9 @@ async function run(publicClient: PublicClient, safe: Hex) {
     BigInt(0),
     blockNumber
   )
-  console.log(`fetching eth_getProof...`)
+  console.info(`fetching eth_getProof...`)
   const storageHash = await ethGetProof(publicClient, safe, blockNumber)
-  const calculated = await calculateStorageHash({
+  const calculatedStorageHash = await calculateStorageHash({
     singleton,
     modules,
     owners,
@@ -57,12 +58,12 @@ async function run(publicClient: PublicClient, safe: Hex) {
     guard,
     fallback,
   })
-  console.log('Expected : ' + calculated)
-  console.log('Actual   : ' + storageHash)
-  if (calculated == storageHash) {
-    console.log(`\x1B[32m✔ Hashes match \x1B[0m`)
+  console.info('Expected : ' + calculatedStorageHash)
+  console.info('Actual   : ' + storageHash)
+  if (storageHash == calculatedStorageHash) {
+    console.info(`\x1B[32m✔ Hashes match \x1B[0m`)
   } else {
-    console.log('\x1B[31m✘ \x1B[0m')
+    console.info('\x1B[31m✘ \x1B[0m')
   }
 }
 
