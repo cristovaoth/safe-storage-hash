@@ -7,7 +7,8 @@
   "license": "MIT",
   "scripts": {
     "compute": "ts-node ./src/tasks/compute.ts",
-    "computeAll": "ts-node ./src/tasks/computeAll.ts"
+    "computeAll": "ts-node ./src/tasks/computeAll.ts",
+    "enumerate": "ts-node ./src/tasks/enumerate.ts"
   },
   "dependencies": {
     "@ethereumjs/rlp": "^5.0.1",

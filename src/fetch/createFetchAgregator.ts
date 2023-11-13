@@ -44,6 +44,22 @@ export default function createFetchAggregator<T>(
   }
 }
 
+export function createReporter() {
+  const set = new Set<number>()
+
+  return ({ to, currTo }: { to: number; currTo: number }) => {
+    const progress = Math.floor((currTo * 100) / to)
+    const rounded = Math.floor(progress / 10) * 10
+
+    if (rounded == 0 || (rounded == 100 && set.size == 0) || set.has(rounded)) {
+      return
+    }
+
+    set.add(rounded)
+    console.info(`Fetched ${rounded}%`)
+  }
+}
+
 function narrow(start: number, end: number) {
   assert(start <= end)
   const width = end - start + 1

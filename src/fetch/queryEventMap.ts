@@ -1,5 +1,5 @@
 import { Hex, Log, PublicClient, getAddress, parseAbiItem } from 'viem'
-import createFetchAggregator from './createFetchAgregator'
+import createFetchAggregator, { createReporter } from './createFetchAgregator'
 
 export default async function queryEventMap(
   publicClient: PublicClient,
@@ -55,20 +55,4 @@ export default async function queryEventMap(
   }
 
   return result
-}
-
-function createReporter() {
-  const set = new Set<number>()
-
-  return ({ to, currTo }: { to: number; currTo: number }) => {
-    const progress = Math.floor((currTo * 100) / to)
-    const rounded = Math.floor(progress / 10) * 10
-
-    if (rounded == 0 || (rounded == 100 && set.size == 0) || set.has(rounded)) {
-      return
-    }
-
-    set.add(rounded)
-    console.info(`Fetched ${rounded}%`)
-  }
 }

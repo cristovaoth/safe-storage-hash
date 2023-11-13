@@ -1,6 +1,6 @@
-# Calculate Safe Storage Hash
+# Safe Storage Hash
 
-A project that detects whether a deployed Safe has experienced shadow storage writes.
+A project that detects whether a deployed Safe has shadow storage values.
 
 ## Installation
 
@@ -22,10 +22,10 @@ yarn compute 0xF4BC398d1A3dE41B753cA9a3E16d599C265B9EB2 100
 
 ## About Storage Hash Calculating
 
-The issue of shadow safes has come to light recently on Twitter (refer to this [Tweet](https://twitter.com/bkiepuszewski/status/1722287321997779427)).
+The issue of shadow safes has come to light recently on Twitter ([tweet](https://twitter.com/bkiepuszewski/status/1722287321997779427)).
 
-This package detects a shadow safe by calculating the expected storage hash based on public contract functions and event logs. It then compares it with the actual storage hash obtained from **eth_getProof**. If a difference exists, there are shadow storage writes.
+This package handles detection by independently calculating the storage hash and then comparing it with the actual storage hash retrieved using eth_getProof. It pulls the necessary inputs from public contract functions and event logs for the calculation.
 
 ## Enhancing RPC Performance
 
-This package uses the public default network RPC URLs. Insert keys on .env to speed up the script.
+Populate the .env values to speed up the script. Otherwise the public RPC URLs will be used, which is slower.

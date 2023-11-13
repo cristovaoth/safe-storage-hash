@@ -27,6 +27,18 @@ export default function parseInput(argv: string[]): {
   return { safe, chain }
 }
 
+export function parseNetworkInput(argv: string[]): Chain {
+  const last = argv[argv.length - 1]
+
+  const chain = toChain(last)
+  if (!chain) {
+    console.warn('Using mainnet as default network')
+    return chains.mainnet
+  }
+
+  return chain
+}
+
 function toChain(network: string) {
   network = network.toLowerCase()
 

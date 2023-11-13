@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import { Chain, mainnet } from 'viem/chains'
+import { Chain } from 'viem/chains'
 
 import createClient from '@/fetch/createClient'
 import eth_getProof from '@/fetch/eth_getProof'
@@ -10,6 +10,7 @@ import querySafeVersion from '@/fetch/querySafeVersion'
 
 import calculateStorageHash from '@/calculate'
 import { Hex, getAddress } from 'viem'
+import { parseNetworkInput } from './parseInput'
 
 async function run(chain: Chain) {
   const safes = loadSafes(chain.id)
@@ -91,7 +92,7 @@ async function run(chain: Chain) {
       }
     } catch (e) {
       console.log('\x1B[31m Something went wrong \x1B[0m')
-      console.log(errors.push(safe))
+      errors.push(safe)
     } finally {
       if (++counter % 100 == 0) {
         storeResults(chain.id, {
@@ -124,4 +125,4 @@ function storeResults(chainId: number, data: any) {
   )
 }
 
-run(mainnet)
+run(parseNetworkInput(process.argv))
