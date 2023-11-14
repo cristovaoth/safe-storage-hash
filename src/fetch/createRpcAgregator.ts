@@ -13,26 +13,25 @@ type progressCallback = ({
   currTo: number
 }) => void
 
-export default function createFetchAggregator<T>(
+export default function createRpcAggregator<T>(
   from: number,
   to: number,
   fetch: fetchCallback<T>,
   progress?: progressCallback
 ): () => Promise<T[]> {
   let result: T[] = []
-  let [currFrom, currTo] = next(from, to)
-
+  let [currFrom, currTo] = [from, to]
   return async () => {
     while (true) {
-      // have we already fetched all?
-      if (currFrom > currTo) {
-        return [...result]
-      }
-
       try {
         result = result.concat(await fetch(currFrom, currTo))
+
         if (progress) progress({ from, to, currFrom, currTo })
-        ;[currFrom, currTo] = next(currTo + 1, to)
+        // have we already fetched all?
+        if (currTo == to) {
+          return [...result]
+        }
+        ;[currFrom, currTo] = next({ from, to, currFrom, currTo })
       } catch (e) {
         if (currFrom < currTo) {
           ;[currFrom, currTo] = narrow(currFrom, currTo)
@@ -60,13 +59,36 @@ export function createReporter() {
   }
 }
 
-function narrow(start: number, end: number) {
-  assert(start <= end)
-  const width = end - start + 1
-  const nextEnd = Math.max(start, start + Math.floor(width / 10) - 1)
-  return next(...[start, nextEnd])
+function next(
+  {
+    from,
+    to,
+    currFrom,
+    currTo,
+  }: { from: number; to: number; currFrom: number; currTo: number },
+  maxBlockRange?: number
+) {
+  assert(from <= to)
+  assert(currFrom <= currTo)
+
+  const nextFrom = currTo < to ? currTo + 1 : currFrom
+
+  return withMaxRange(nextFrom, to, maxBlockRange)
 }
 
-function next(left: number, right: number, maxBlockRange: number = 100000) {
-  return [left, right]
+function narrow(left: number, right: number, maxBlockRange?: number) {
+  assert(left <= right)
+  const width = right - left + 1
+
+  const nextRight = width < 10 ? left : left + Math.floor(width / 10)
+
+  return withMaxRange(left, nextRight, maxBlockRange)
+}
+
+function withMaxRange(
+  from: number,
+  to: number,
+  maxBlockRange: number = Number.MAX_VALUE
+) {
+  return [from, Math.min(from + maxBlockRange, to)]
 }

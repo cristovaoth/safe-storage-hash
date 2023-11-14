@@ -1,5 +1,5 @@
 import { Hex, Log, PublicClient, getAddress, parseAbiItem } from 'viem'
-import createFetchAggregator, { createReporter } from './createFetchAgregator'
+import createRpcAggregator, { createReporter } from './createRpcAgregator'
 
 export default async function queryEventMap(
   publicClient: PublicClient,
@@ -12,7 +12,7 @@ export default async function queryEventMap(
     { signMsgEvents: Log[]; approveHashEvents: Log[] }
   >()
 
-  const fetchSignMsg = createFetchAggregator(
+  const fetchSignMsg = createRpcAggregator(
     Number(fromBlock),
     Number(toBlock),
     (currFrom, currTo) =>
@@ -33,7 +33,7 @@ export default async function queryEventMap(
     result.get(address)?.signMsgEvents.push(log)
   }
 
-  const fetchApproveHash = createFetchAggregator(
+  const fetchApproveHash = createRpcAggregator(
     Number(fromBlock),
     Number(toBlock),
     (currFrom, currTo) =>

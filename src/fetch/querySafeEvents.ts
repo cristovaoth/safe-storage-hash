@@ -1,6 +1,6 @@
 import { Hex, PublicClient } from 'viem'
 import { APPROVE_HASH, SIGN_MSG } from '../events'
-import createFetchAggregator, { createReporter } from './createFetchAgregator'
+import createRpcAggregator, { createReporter } from './createRpcAgregator'
 
 export default async function querySafeEvents(
   publicClient: PublicClient,
@@ -8,7 +8,7 @@ export default async function querySafeEvents(
   fromBlock: bigint,
   toBlock: bigint
 ) {
-  const fetch = createFetchAggregator(
+  const fetch = createRpcAggregator(
     Number(fromBlock),
     Number(toBlock),
     (currFrom, currTo) =>

@@ -2,12 +2,11 @@ import path from 'path'
 import fs from 'fs'
 
 import { Chain, PublicClient } from 'viem'
-import { mainnet } from 'viem/chains'
 
 import { SAFE_PROXY_CREATION, decodeSafeProxyCreation } from '../events'
-import createFetchAggregator, {
+import createRpcAggregator, {
   createReporter,
-} from '../fetch/createFetchAgregator'
+} from '../fetch/createRpcAgregator'
 import createClient from '../fetch/createClient'
 import { proxyFactoryAddress } from '@/deployments'
 import { parseNetworkInput } from './parseInput'
@@ -19,7 +18,7 @@ type SafeDeployment = {
 }
 
 async function run(chain: Chain) {
-  const publicClient = createClient(mainnet)
+  const publicClient = createClient(chain)
 
   const to = Number(await publicClient.getBlockNumber())
 
@@ -68,7 +67,7 @@ async function listSafesFromFactory(
 ): Promise<SafeDeployment[]> {
   console.log(`Finding Safes created by ${factory}`)
 
-  const fetch = createFetchAggregator(
+  const fetch = createRpcAggregator(
     0,
     blockTo,
     async (currFrom, currTo) =>
